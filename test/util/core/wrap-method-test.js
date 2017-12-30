@@ -2,7 +2,6 @@
 
 var referee = require("referee");
 var wrapMethod = require("../../../lib/sinon/util/core/wrap-method");
-var createSpy = require("../../../lib/sinon/spy");
 var createStub = require("../../../lib/sinon/stub");
 var assert = referee.assert;
 var refute = referee.refute;
@@ -117,20 +116,6 @@ describe("util/core/wrapMethod", function () {
         }, "TypeError");
     });
 
-    it("throws Symbol if method is already wrapped", function () {
-        if (typeof Symbol === "function") {
-            var symbol = Symbol();
-            var object = {};
-            object[symbol] = function () {};
-            wrapMethod(object, symbol, function () {});
-
-            assert.exception(function () {
-                wrapMethod(object, symbol, function () {});
-            }, function (err) {
-                return err.message === "Attempted to wrap Symbol() which is already wrapped";
-            });
-        }
-    });
 
     it("throws if property descriptor is already wrapped", function () {
         wrapMethod(this.object, "property", { get: function () {} });
@@ -140,27 +125,6 @@ describe("util/core/wrapMethod", function () {
         }, "TypeError");
     });
 
-    it("throws if method is already a spy", function () {
-        var object = { method: createSpy() };
-
-        assert.exception(function () {
-            wrapMethod(object, "method", function () {});
-        }, "TypeError");
-    });
-
-    it("throws if Symbol method is already a spy", function () {
-        if (typeof Symbol === "function") {
-            var symbol = Symbol();
-            var object = {};
-            object[symbol] = createSpy();
-
-            assert.exception(function () {
-                wrapMethod(object, symbol, function () {});
-            }, function (err) {
-                return err.message === "Attempted to wrap Symbol() which is already spied on";
-            });
-        }
-    });
 
     var overridingErrorAndTypeError = (function () {
         return !(typeof navigator === "object" && /PhantomJS/.test(navigator.userAgent));
@@ -183,21 +147,6 @@ describe("util/core/wrapMethod", function () {
                 TypeError = this.oldTypeError; // eslint-disable-line no-native-reassign, no-undef
             });
 
-            it("throws with stack trace showing original wrapMethod call", function () {
-                var object = { method: function () {} };
-                wrapMethod(object, "method", function () {
-                    return "original";
-                });
-
-                assert.exception(
-                    function () {
-                        wrapMethod(object, "method", function () {});
-                    },
-                    {
-                        stack: ":STACK2:\n--------------\n:STACK1:"
-                    }
-                );
-            });
         });
     }
 
